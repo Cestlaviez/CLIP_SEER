@@ -146,12 +146,16 @@ class ModifiedResNet(nn.Module):
         x = x.type(self.conv1.weight.dtype)
         x = stem(x)
         x = self.layer1(x)
+        activation1=x
         x = self.layer2(x)
+        activation2 = x
         x = self.layer3(x)
+        activation3 = x
         x = self.layer4(x)
+        activation4 = x
         x = self.attnpool(x)
 
-        return x
+        return x,activation1,activation2,activation3,activation4
 
 
 class LayerNorm(nn.LayerNorm):
@@ -356,7 +360,7 @@ class CLIP(nn.Module):
         return x
 
     def forward(self, image, text):
-        image_features = self.encode_image(image)
+        image_features,activation1,activation2,activation3,activation4 = self.encode_image(image)
         text_features = self.encode_text(text)
 
         # normalized features
@@ -369,7 +373,7 @@ class CLIP(nn.Module):
         logits_per_text = logits_per_image.t()
 
         # shape = [global_batch_size, global_batch_size]
-        return logits_per_image, logits_per_text
+        return logits_per_image, logits_per_text,activation1,activation2,activation3,activation4
 
 
 def convert_weights(model: nn.Module):
