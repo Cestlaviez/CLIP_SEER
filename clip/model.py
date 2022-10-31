@@ -154,7 +154,7 @@ class ModifiedResNet(nn.Module):
         x = self.layer4(x)
         activation4 = x
         
-        if prune_mask:
+        if prune_mask is not None:
             x=x*(prune_mask.unsqueeze(0).unsqueeze(2).unsqueeze(3).cuda())
             
         x = self.attnpool(x)
