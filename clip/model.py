@@ -135,7 +135,7 @@ class ModifiedResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x, prune_mask=None):
         def stem(x):
             x = self.relu1(self.bn1(self.conv1(x)))
             x = self.relu2(self.bn2(self.conv2(x)))
@@ -153,6 +153,10 @@ class ModifiedResNet(nn.Module):
         activation3 = x
         x = self.layer4(x)
         activation4 = x
+        
+        if prune_mask:
+            x=x*(prune_mask.unsqueeze(0).unsqueeze(2).unsqueeze(3).cuda())
+            
         x = self.attnpool(x)
 
         return x,activation1,activation2,activation3,activation4
@@ -341,8 +345,8 @@ class CLIP(nn.Module):
     def dtype(self):
         return self.visual.conv1.weight.dtype
 
-    def encode_image(self, image):
-        return self.visual(image.type(self.dtype))
+    def encode_image(self, image, prune_mask=None):
+        return self.visual(image.type(self.dtype),prune_mask)
 
     def encode_text(self, text):
         x = self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
